@@ -76,20 +76,33 @@ const createGroupChat = expressAsyncHandler(async (req, res) => {
             res.status(400).json({ message: "More than 2 users are required to form a group chat", success: false })
         }
 
-        user.push(req.user);
+        await Chat.find({ chatName: name }).then(async (result) => {
+            if (result && result.length > 0) {
 
-        await Chat.create({ chatName: name, users: user, isGroupChat: true, groupAdmin: req.user }).then(async (created) => {
-            await Chat.find({ _id: created._id }).populate("users", "-password").populate("groupAdmin", "-password").then((result) => {
-                res.status(200).send(result)
-            }).catch((error) => {
-                console.log(error)
-                res.status(400).json({ message: "Chats fatching failed", success: false, error: error })
-            })
+                res.status(400).json({ message: "Group is already exsist", success: false })
+
+            } else {
+
+                user.push(req.user);
+
+                await Chat.create({ chatName: name, users: user, isGroupChat: true, groupAdmin: req.user }).then(async (created) => {
+                    await Chat.find({ _id: created._id }).populate("users", "-password").populate("groupAdmin", "-password").then((result) => {
+                        res.status(200).send(result)
+                    }).catch((error) => {
+                        console.log(error)
+                        res.status(400).json({ message: "Chats fatching failed", success: false, error: error })
+                    })
+                }).catch((error) => {
+                    console.log(error)
+                    res.status(400).json({ message: "Group Create failed", success: false, error: error })
+                })
+
+            }
         }).catch((error) => {
             console.log(error)
-            res.status(400).json({ message: "Group Create failed", success: false, error: error })
+            res.status(400).json({ message: "Group details fetched failed", success: false, error: error })
         })
-        
+
     } catch (error) {
         console.log(error);
         res.status(400).json({ message: "Something wrong!", success: false, error: error })
@@ -98,6 +111,67 @@ const createGroupChat = expressAsyncHandler(async (req, res) => {
 
 const renameGroup = expressAsyncHandler(async (req, res) => {
     try {
+
+        const { chatId } = req.body
+
+        let validate = validationResult(req)
+
+        if (!validate.isEmpty()) {
+            res.status(400).json({ message: "Please fill all mendatory fields", success: false, error: validate.array() })
+        }
+
+        await Chat.findById(chatId).then(async ({ chatName }) => {
+            if (chatName !== req.body.chatName) {
+                await Chat.findByIdAndUpdate(chatId, { chatName: req.body.chatName }, { new: true }).populate("users", "-password").populate("groupAdmin", "-password").then((result) => {
+                    res.status(200).json(result)
+                }).catch((error) => {
+                    console.log(error)
+                    res.status(400).json({ message: "Group name update failed", success: false, error: error })
+                })
+            } else {
+                res.status(400).json({ message: "Can Not Use Old Group Name", success: false })
+            }
+        })
+
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({ message: "Something wrong!", success: false, error: error })
+    }
+})
+
+const addToGroup = expressAsyncHandler(async (req, res) => {
+    try {
+
+        const { chatId, userId } = req.body;
+
+        await Chat.findByIdAndUpdate(chatId, { $push: { users: userId } }, { new: true }).populate("users", "-password").populate("groupAdmin", "-password").then((added) => {
+            if (added) {
+                res.status(200).json(added)
+            }
+        }).catch((error) => {
+            console.log(error);
+            res.status(400).json({ message: "User added failed", success: false, error: error })
+        })
+
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({ message: "Something wrong!", success: false, error: error })
+    }
+})
+
+const removeFromGroup = expressAsyncHandler(async (req, res) => {
+    try {
+
+        const { chatId, userId } = req.body;
+
+        await Chat.findByIdAndUpdate(chatId, { $pull: { users: userId } }, { new: true }).populate("users", "-password").populate("groupAdmin", "-password").then((removed) => {
+            if (removed) {
+                res.status(200).json(removed)
+            }
+        }).catch((error) => {
+            console.log(error);
+            res.status(400).json({ message: "User removed failed", success: false, error: error })
+        })
         
     } catch (error) {
         console.log(error);
@@ -105,4 +179,4 @@ const renameGroup = expressAsyncHandler(async (req, res) => {
     }
 })
 
-module.exports = { accessChat, fetchChats, createGroupChat, renameGroup }
+module.exports = { accessChat, fetchChats, createGroupChat, renameGroup, addToGroup, removeFromGroup }

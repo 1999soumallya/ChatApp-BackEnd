@@ -5,4 +5,9 @@ const CreateGroupBodyValidate = [
     ExpressValidator.body("name").notEmpty().bail()
 ]
 
-module.exports = { CreateGroupBodyValidate }
+const RenameGroupBodyValidator = [
+    ExpressValidator.body("chatId").notEmpty().bail(),
+    ExpressValidator.body("chatName").notEmpty().bail()
+]
+
+module.exports = { CreateGroupBodyValidate, RenameGroupBodyValidator }
