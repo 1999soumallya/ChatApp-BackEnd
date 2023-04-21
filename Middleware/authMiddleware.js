@@ -14,11 +14,11 @@ const protect = expressAsyncHandler(async (req, res, next) => {
             if (req.user) {
                 next()
             } else {
-                res.status(400).json({ message: "Please provide a valid token", success: false })
+                res.status(400).json({ message: "You are login but not authorized for this action", success: false })
             }
 
         } else {
-            res.status(400).json({ message: "Please provide a valid token", success: false })
+            res.status(400).json({ message: "Please login your account", success: false })
         }
     } catch (error) {
         res.status(400).json({ message: "Something wrong!", success: false, error: error })
