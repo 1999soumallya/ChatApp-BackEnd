@@ -69,7 +69,7 @@ const allUsers = expressAsyncHandler(async (req, res) => {
         if (users && users.length > 0) {
             res.status(200).json({ message: "Find all the users", success: true, users: users })
         } else {
-            res.status(200).json({ message: "Find all the users", success: true, users: [] })
+            res.status(200).json({ message: `No user found with this name of email`, success: true, users: [] })
         }
 
     } catch (error) {
