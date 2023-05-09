@@ -68,12 +68,14 @@ const createGroupChat = expressAsyncHandler(async (req, res) => {
 
         if (!validate.isEmpty()) {
             res.status(400).json({ message: "Please fill all the details", success: false, error: validate.array() })
+            return
         }
 
         let user = JSON.parse(users)
 
         if (user.length < 2) {
             res.status(400).json({ message: "More than 2 users are required to form a group chat", success: false })
+            return
         }
 
         await Chat.find({ chatName: name }).then(async (result) => {
