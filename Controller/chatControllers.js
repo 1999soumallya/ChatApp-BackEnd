@@ -78,7 +78,7 @@ const createGroupChat = expressAsyncHandler(async (req, res) => {
             return
         }
 
-        await Chat.find({ chatName: name, $and: { users: { $elemMatch: { $eq: req.user._id } } } }).then(async (result) => {
+        await Chat.find({ chatName: name, $and: [{ users: { $elemMatch: { $eq: req.user._id } } }] }).then(async (result) => {
             if (result && result.length > 0) {
 
                 res.status(400).json({ message: "Group is already exsist", success: false })
@@ -144,7 +144,11 @@ const renameGroup = expressAsyncHandler(async (req, res) => {
 const addToGroup = expressAsyncHandler(async (req, res) => {
     try {
 
-        const { chatId, userId } = req.body;
+        let { chatId, userId } = req.body;
+
+        if (typeof userId === "string") {
+            userId = JSON.parse(userId)
+        }
 
         await Chat.findByIdAndUpdate(chatId, { $push: { users: userId } }, { new: true }).populate("users", "-password").populate("groupAdmin", "-password").then((added) => {
             if (added) {
@@ -174,7 +178,7 @@ const removeFromGroup = expressAsyncHandler(async (req, res) => {
             console.log(error);
             res.status(400).json({ message: "User removed failed", success: false, error: error })
         })
-        
+
     } catch (error) {
         console.log(error);
         res.status(400).json({ message: "Something wrong!", success: false, error: error })
