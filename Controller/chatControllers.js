@@ -185,4 +185,24 @@ const removeFromGroup = expressAsyncHandler(async (req, res) => {
     }
 })
 
-module.exports = { accessChat, fetchChats, createGroupChat, renameGroup, addToGroup, removeFromGroup }
+const deleteChat = expressAsyncHandler(async (req, res) => {
+    try {
+
+        const { chatid } = req.params
+
+        await Chat.deleteOne({ "_id": `${chatid}` }).then((deleted) => {
+            if (deleted) {
+                res.status(200).json({ message: "Delete this chat success", success: true, result: deleted })
+            }
+        }).catch((error) => {
+            console.log(error);
+            res.status(400).json({ message: "Delete this chat failed", success: false, error: error })
+        })
+
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({ message: "Something wrong!", success: false, error: error })
+    }
+})
+
+module.exports = { accessChat, fetchChats, createGroupChat, renameGroup, addToGroup, removeFromGroup, deleteChat }
