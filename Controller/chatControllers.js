@@ -76,7 +76,7 @@ const createGroupChat = expressAsyncHandler(async (req, res) => {
             res.status(400).json({ message: "More than 2 users are required to form a group chat", success: false })
         }
 
-        await Chat.find({ chatName: name }).then(async (result) => {
+        await Chat.find({ chatName: name, $and: { users: { $elemMatch: { $eq: req.user._id } } } }).then(async (result) => {
             if (result && result.length > 0) {
 
                 res.status(400).json({ message: "Group is already exsist", success: false })
