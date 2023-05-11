@@ -15,6 +15,7 @@ app.use(cors({ origin: true }));
 app.use("/api/user", require("./Routes/UserRoute"))
 app.use("/api/chat", require("./Routes/ChatRoute"))
 app.use("/api/message", require("./Routes/MessageRoute"))
+app.use("/api/send", require("./Routes/SendDetailsRoute"))
 
 app.listen(PORT, () => {
     console.log(`My Server Is Run On Port ${PORT}`.yellow.bold)

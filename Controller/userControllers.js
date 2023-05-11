@@ -1,7 +1,7 @@
 const expressAsyncHandler = require("express-async-handler")
 const { validationResult } = require("express-validator")
 const User = require("../Model/userModel")
-const GenerateToken = require("../utils/GenerateToken")
+const GenerateToken = require("../Helper/GenerateToken")
 
 const registerUser = expressAsyncHandler(async (req, res) => {
     try {
