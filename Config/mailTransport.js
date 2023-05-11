@@ -12,4 +12,4 @@ const ConnectToMail = () => {
     })
 }
 
-module.exports = ConnectToMail
+module.exports = { ConnectToMail }

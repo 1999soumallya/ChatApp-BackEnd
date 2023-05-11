@@ -11,6 +11,7 @@ const PORT = process.env.PORT || 3001
 
 app.use(express.json())
 app.use(cors({ origin: true }));
+app.use(express.static("public"));
 
 app.use("/api/user", require("./Routes/UserRoute"))
 app.use("/api/chat", require("./Routes/ChatRoute"))
