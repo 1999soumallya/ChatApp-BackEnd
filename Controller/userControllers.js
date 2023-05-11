@@ -11,12 +11,14 @@ const registerUser = expressAsyncHandler(async (req, res) => {
 
         if (!validateresult.isEmpty()) {
             res.status(400).json({ message: "Please fill all details to register", success: false, error: validateresult.array() })
+            return
         }
 
         const UserExsist = await User.findOne({ email })
 
         if (UserExsist) {
             res.status(400).json({ message: "User already exsist", success: false, details: UserExsist })
+            return
         }
 
         const user = await User.create({ name, email, password, picture })
@@ -39,6 +41,7 @@ const loginUser = expressAsyncHandler(async (req, res) => {
 
         if (!validateresult.isEmpty()) {
             res.status(400).json({ message: "Please fill all fields to login", success: false, error: validateresult.array() })
+            return
         }
 
         const UserFind = await User.findOne({ email })

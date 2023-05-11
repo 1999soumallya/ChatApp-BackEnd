@@ -9,6 +9,7 @@ const accessChat = expressAsyncHandler(async (req, res) => {
 
         if (!userId) {
             res.status(400).send("Please provide a userid")
+            return
         }
 
         let isChat = await Chat.find({ isGroupChat: false, $and: [{ users: { $elemMatch: { $eq: req.user._id } } }, { users: { $elemMatch: { $eq: userId } } }] }).populate("users", "-password").populate("latestMessage")
@@ -120,6 +121,7 @@ const renameGroup = expressAsyncHandler(async (req, res) => {
 
         if (!validate.isEmpty()) {
             res.status(400).json({ message: "Please fill all mendatory fields", success: false, error: validate.array() })
+            return
         }
 
         await Chat.findById(chatId).then(async ({ chatName }) => {
@@ -133,6 +135,8 @@ const renameGroup = expressAsyncHandler(async (req, res) => {
             } else {
                 res.status(400).json({ message: "Can Not Use Old Group Name", success: false })
             }
+        }).catch((error) => {
+            res.status(400).json({ message: "Group details fetched failed", success: false, error: error })
         })
 
     } catch (error) {
