@@ -2,6 +2,7 @@ const expressAsyncHandler = require("express-async-handler");
 const { validationResult } = require("express-validator");
 const User = require("../Model/userModel");
 const Chat = require("../Model/chatModel");
+const Message = require("../Model/messageModel")
 
 const SendMessage = expressAsyncHandler(async (req, res) => {
     try {
@@ -16,10 +17,10 @@ const SendMessage = expressAsyncHandler(async (req, res) => {
         }
 
         await Message.create({ sender: user._id, content: content, chat: chatId }).then(async (result) => {
-            result = await result.populate([{ path: 'sender', select: 'name pic' }, { path: 'chat' }])
-            result = await User.populate(result, { path: "chat.users", select: "name pic email" })
-            // result = await result.populate("chat").execPopulate()
-            await Chat.findByIdAndUpdate(chatId, { latestMessage: message }).then(() => {
+            result = await result.populate([{ path: 'sender', select: 'name picture' }, { path: 'chat' }])
+            result = await User.populate(result, { path: "chat.users", select: "name picture email" })
+
+            await Chat.findByIdAndUpdate(chatId, { latestMessage: result }).then(() => {
                 res.status(200).json(result)
             }).catch((error) => {
                 res.status(400).json({ message: "Latest Message Update Failed", success: false, error: error })
@@ -29,6 +30,7 @@ const SendMessage = expressAsyncHandler(async (req, res) => {
         })
 
     } catch (error) {
+        console.log(error)
         res.status(400).json({ message: "Something wrong!", success: false, error: error })
     }
 })
@@ -36,8 +38,17 @@ const SendMessage = expressAsyncHandler(async (req, res) => {
 const AllMessages = expressAsyncHandler(async (req, res) => {
     try {
 
-    } catch (error) {
+        const { chatId } = req.params
 
+        await Message.find({ chat: chatId }).populate([{ path: "sender", select: "name picture email" }, { path: "chat" }]).then((allChats) => {
+            res.status(200).json(allChats)
+        }).catch((error) => {
+            res.status(400).json({ message: "Message fetching failed", success: false, error: error })
+        })
+
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({ message: "Something wrong!", success: false, error: error })
     }
 })
 
