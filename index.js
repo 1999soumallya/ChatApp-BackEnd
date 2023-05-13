@@ -40,6 +40,9 @@ io.on("connection", (socket) => {
         socket.join(room_id)
     })
 
+    socket.on("typing", (room) => socket.in(room).emit("typing"));
+    socket.on("stop typing", (room) => socket.in(room).emit("stop typing"));
+
     socket.on("new message", (newMessage) => {
         if (!newMessage.chat.users) return console.log("No user in this chat");
         newMessage.chat.users.forEach(users => {
