@@ -4,7 +4,7 @@ const { SendMessageValidator } = require("../Validator/messageValidator")
 
 const Router = require("express").Router()
 
-Router.route("/").post(protect, SendMessageValidator, SendMessage).get(GetAllNotification)
+Router.route("/").post(protect, SendMessageValidator, SendMessage).get(protect, GetAllNotification)
 Router.route("/:chatId").get(protect, AllMessages)
 Router.route("/notification").post(protect, SaveNotification).delete(protect, DeleteNotification)
 
