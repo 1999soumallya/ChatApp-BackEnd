@@ -51,4 +51,9 @@ io.on("connection", (socket) => {
         });
     })
 
+    socket.off("setup", (userData) => {
+        console.log("User Disconnected")
+        socket.leave(userData.id)
+    })
+
 })
