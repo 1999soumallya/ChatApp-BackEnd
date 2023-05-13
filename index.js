@@ -1,6 +1,7 @@
 const express = require("express")
 const cors = require("cors")
 const ConnectDb = require("./Config/dbConnection")
+const { Server } = require("socket.io")
 
 require("dotenv").config()
 require("colors")
@@ -18,6 +19,33 @@ app.use("/api/chat", require("./Routes/ChatRoute"))
 app.use("/api/message", require("./Routes/MessageRoute"))
 app.use("/api/send", require("./Routes/SendDetailsRoute"))
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`My Server Is Run On Port ${PORT}`.yellow.bold)
 });
+
+const io = new Server(server, ({
+    pingTimeout: 60000,
+    cors: {
+        origin: process.env.ORIGIN_URL
+    }
+}))
+
+io.on("connection", (socket) => {
+    socket.on("setup", (userData) => {
+        socket.join(userData.id)
+        socket.emit("connected")
+    })
+
+    socket.on("join chat", (room_id) => {
+        socket.join(room_id)
+    })
+
+    socket.on("new message", (newMessage) => {
+        if (!newMessage.chat.users) return console.log("No user in this chat");
+        newMessage.chat.users.forEach(users => {
+            if (users._id == newMessage.sender._id) return
+            socket.in(users._id).emit("message recive", newMessage)
+        });
+    })
+
+})
