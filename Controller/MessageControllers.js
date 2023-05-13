@@ -3,6 +3,7 @@ const { validationResult } = require("express-validator");
 const User = require("../Model/userModel");
 const Chat = require("../Model/chatModel");
 const Message = require("../Model/messageModel")
+const Notification = require("../Model/notificationModel")
 
 const SendMessage = expressAsyncHandler(async (req, res) => {
     try {
@@ -52,4 +53,57 @@ const AllMessages = expressAsyncHandler(async (req, res) => {
     }
 })
 
-module.exports = { SendMessage, AllMessages }
+const SaveNotification = expressAsyncHandler(async (req, res) => {
+    try {
+        const { MessageId, UserID } = req.body
+
+        await Notification.create({ notificationMessages: MessageId, reciver: UserID }).then(async (result) => {
+            result = await result.populate([{ path: "notificationMessages" }, { path: "reciver" }])
+            result = await Chat.populate(result, { path: "notificationMessages.chat" })
+            result = await User.populate(result, { path: "notificationMessages.chat.users", select: "name" })
+            res.status(200).json(result)
+        }).catch((error) => {
+            res.status(400).json({ message: "Notification saved failed", success: false, error: error })
+        })
+
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({ message: "Something wrong!", success: false, error: error })
+    }
+})
+
+const DeleteNotification = expressAsyncHandler(async (req, res) => {
+    try {
+        const { id } = req.query
+
+        await Notification.deleteOne({ "_id": `${id}` }).then(() => {
+            res.status(200).json({ message: "Notification delete successfull", success: true })
+        }).catch((error) => {
+            res.status(400).json({ message: "Notification delete failed", success: false, error: error })
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({ message: "Something wrong!", success: false, error: error.message })
+    }
+})
+
+const GetAllNotification = expressAsyncHandler(async (req, res) => {
+    try {
+        const { id } = req.query
+
+        await Notification.find({ reciver: `${id}` }).populate([{ path: "notificationMessages" }, { path: "reciver" }]).then(async (result) => {
+            result = await Chat.populate(result, { path: "notificationMessages.chat" })
+            result = await User.populate(result, { path: "notificationMessages.chat.users", select: "name" })
+            res.status(200).json(result)
+        }).catch((error) => {
+            console.log(error)
+            res.status(400).json({ message: "Notification getting failed", success: false, error: error })
+        })
+
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({ message: "Something wrong!", success: false, error: error.message })
+    }
+})
+
+module.exports = { SendMessage, AllMessages, SaveNotification, DeleteNotification, GetAllNotification }
