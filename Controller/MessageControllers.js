@@ -57,7 +57,7 @@ const SaveNotification = expressAsyncHandler(async (req, res) => {
     try {
         const { MessageId, UserID } = req.body
 
-        await Notification.create({ notificationMessages: MessageId, reciver: UserID }).then(async (result) => {
+        await Notification.create({ notificationMessages: MessageId, reciver: UserID, isSeened: false }).then(async (result) => {
             result = await result.populate([{ path: "notificationMessages" }, { path: "reciver" }])
             result = await Chat.populate(result, { path: "notificationMessages.chat" })
             result = await User.populate(result, { path: "notificationMessages.chat.users", select: "name" })
@@ -91,7 +91,7 @@ const GetAllNotification = expressAsyncHandler(async (req, res) => {
     try {
         const { id } = req.query
 
-        await Notification.find({ reciver: `${id}` }).populate([{ path: "notificationMessages" }, { path: "reciver" }]).then(async (result) => {
+        await Notification.find({ reciver: `${id}`, isSeened: false }).populate([{ path: "notificationMessages" }, { path: "reciver" }]).then(async (result) => {
             result = await Chat.populate(result, { path: "notificationMessages.chat" })
             result = await User.populate(result, { path: "notificationMessages.chat.users", select: "name" })
             res.status(200).json(result)

@@ -8,6 +8,9 @@ const NotificationSchima = mongoose.Schema({
     reciver: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
+    },
+    isSeened: {
+        type: Boolean
     }
 }, { timestamps: true })
 
