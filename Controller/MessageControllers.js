@@ -55,9 +55,9 @@ const AllMessages = expressAsyncHandler(async (req, res) => {
 
 const SaveNotification = expressAsyncHandler(async (req, res) => {
     try {
-        const { MessageId, UserID } = req.body
+        const { MessageId, UserID, ChatId } = req.body
 
-        await Notification.create({ notificationMessages: MessageId, reciver: UserID, isSeened: false }).then(async (result) => {
+        await Notification.create({ notificationMessages: MessageId, reciver: UserID, isSeened: false, ChatId }).then(async (result) => {
             result = await result.populate([{ path: "notificationMessages" }, { path: "reciver" }])
             result = await Chat.populate(result, { path: "notificationMessages.chat" })
             result = await User.populate(result, { path: "notificationMessages.chat.users", select: "name" })
@@ -76,11 +76,27 @@ const DeleteNotification = expressAsyncHandler(async (req, res) => {
     try {
         const { id } = req.query
 
-        await Notification.deleteOne({ "_id": `${id}` }).then(() => {
+        await Notification.deleteOne({ "notificationMessages": `${id}` }).then(() => {
             res.status(200).json({ message: "Notification delete successfull", success: true })
         }).catch((error) => {
             res.status(400).json({ message: "Notification delete failed", success: false, error: error })
         })
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({ message: "Something wrong!", success: false, error: error.message })
+    }
+})
+
+const DeleteAllNotificationForSingleChat = expressAsyncHandler(async (req, res) => {
+    try {
+        const { chatId } = req.params
+
+        await Notification.deleteMany({ ChatId: chatId }).then(() => {
+            res.status(200).json({ message: "All Notification delete successful for this chat", success: true })
+        }).catch((error) => {
+            res.status(400).json({ message: "All Notification delete failed for this chat", success: false, error: error })
+        })
+
     } catch (error) {
         console.log(error)
         res.status(400).json({ message: "Something wrong!", success: false, error: error.message })
@@ -92,7 +108,7 @@ const GetAllNotification = expressAsyncHandler(async (req, res) => {
         const { id } = req.query
 
         await Notification.find({ reciver: `${id}`, isSeened: false }).populate([{ path: "notificationMessages" }, { path: "reciver" }]).then(async (result) => {
-            result = await Chat.populate(result, { path: "notificationMessages.chat" })
+            result = await Chat.populate(result, [{ path: "notificationMessages.chat" }, { path: "notificationMessages.sender" }])
             result = await User.populate(result, { path: "notificationMessages.chat.users", select: "name" })
             res.status(200).json(result)
         }).catch((error) => {
@@ -106,4 +122,4 @@ const GetAllNotification = expressAsyncHandler(async (req, res) => {
     }
 })
 
-module.exports = { SendMessage, AllMessages, SaveNotification, DeleteNotification, GetAllNotification }
+module.exports = { SendMessage, AllMessages, SaveNotification, DeleteNotification, GetAllNotification, DeleteAllNotificationForSingleChat }

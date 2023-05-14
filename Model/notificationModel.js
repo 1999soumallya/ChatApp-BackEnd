@@ -11,6 +11,10 @@ const NotificationSchima = mongoose.Schema({
     },
     isSeened: {
         type: Boolean
+    },
+    ChatId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Chat"
     }
 }, { timestamps: true })
 
